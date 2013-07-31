@@ -1,0 +1,6 @@
+[gerrit]
+host=gerrit.cobaldwins.net
+port=29418
+project=merge/lcs-merge.git
+defaultbranch=master
+defaultrebase=0
