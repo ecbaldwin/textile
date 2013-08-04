@@ -1,0 +1,33 @@
+        # TODO(dims): eventlet's green dns/socket module does not actually
+        # support IPv6 in getaddrinfo(). We need to get around this in the
+        # future or monitor upstream for a fix
+        try:
+            info = socket.getaddrinfo(self._host,
+                                      self._port,
+                                      socket.AF_UNSPEC,
+                                      socket.SOCK_STREAM)[0]
+            family = info[0]
+            bind_addr = info[-1]
+
+            self._socket = eventlet.listen(bind_addr,
+                                           family=family,
+                                           backlog=backlog)
+            self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # sockets can hang around forever without keepalive
+            self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        except:
+            LOG.exception(_("Unable to listen on %(host)s:%(port)s") %
+                          {'host': host, 'port': port})
+            sys.exit(1)
+
+        if workers < 1:
+            # For the case where only one process is required.
+            self._server = self.pool.spawn(self._run, application, self._socket)
+        else:
+            LOG.info(_("Starting %d workers") % workers)
+            self._application = application
+            signal.signal(signal.SIGTERM, kill_children)
+            signal.signal(signal.SIGINT, kill_children)
+            signal.signal(signal.SIGHUP, hup)
+            while len(self.children) < workers:
+                self.run_child()

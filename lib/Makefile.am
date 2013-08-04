@@ -1,3 +1,3 @@
-lib_LIBRARIES = liblcsmerge.a
-include_HEADERS = hello.h
-liblcsmerge_a_SOURCES = hello.c
+lib_LIBRARIES = libtextile.a
+include_HEADERS = textile.h
+libtextile_a_SOURCES = textile.c

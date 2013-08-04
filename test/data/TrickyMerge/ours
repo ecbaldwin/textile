@@ -1,0 +1,15 @@
+        self._socket = self._get_socket(self._host,
+                                        self._port,
+                                        backlog=backlog)
+        if workers < 1:
+            # For the case where only one process is required.
+            self._server = self.pool.spawn(self._run, application,
+                                           self._socket)
+        else:
+            LOG.info(_("Starting %d workers") % workers)
+            self._application = application
+            signal.signal(signal.SIGTERM, kill_children)
+            signal.signal(signal.SIGINT, kill_children)
+            signal.signal(signal.SIGHUP, hup)
+            while len(self.children) < workers:
+                self.run_child()

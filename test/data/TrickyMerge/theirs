@@ -1,0 +1,20 @@
+        # TODO(dims): eventlet's green dns/socket module does not actually
+        # support IPv6 in getaddrinfo(). We need to get around this in the
+        # future or monitor upstream for a fix
+        try:
+            info = socket.getaddrinfo(self._host,
+                                      self._port,
+                                      socket.AF_UNSPEC,
+                                      socket.SOCK_STREAM)[0]
+            family = info[0]
+            bind_addr = info[-1]
+
+            self._socket = eventlet.listen(bind_addr,
+                                           family=family,
+                                           backlog=backlog)
+        except:
+            LOG.exception(_("Unable to listen on %(host)s:%(port)s") %
+                          {'host': host, 'port': port})
+            sys.exit(1)
+
+        self._server = self.pool.spawn(self._run, application, self._socket)

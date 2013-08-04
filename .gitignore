@@ -8,4 +8,4 @@ configure
 depcomp
 install-sh
 missing
-liblcsmerge-*.tar.gz
+textile-*.tar.gz

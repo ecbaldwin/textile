@@ -1,0 +1,30 @@
+            pool.spawn_n(self._router_removed, router_id)
+        pool.waitall()
+
+    @lockutils.synchronized('l3-agent', 'neutron-')
+    def _rpc_loop(self):
+        # _rpc_loop and _sync_routers_task will not be
+        # executed in the same time because of lock.
+        # so we can clear the value of updated_routers
+        # and removed_routers
+        try:
+            if self.updated_routers:
+                router_ids = list(self.updated_routers)
+                self.updated_routers.clear()
+                routers = self.plugin_rpc.get_routers(
+                    self.context, router_ids)
+                self._process_routers(routers)
+            self._process_router_delete()
+        except Exception:
+            LOG.exception(_("Failed synchronizing routers"))
+            self.fullsync = True
+
+    def _process_router_delete(self):
+        current_removed_routers = list(self.removed_routers)
+        for router_id in current_removed_routers:
+            self._router_removed(context, router_id)
+            self.removed_routers.remove(router_id)
+
+    def _router_ids(self):
+        if not self.conf.use_namespaces:
+            return [self.conf.router_id]

@@ -14,11 +14,13 @@ noinst_HEADERS = \
 	$(GTEST_DIR)/include/gtest/internal/*.h \
 	$(GTEST_DIR)/src/*
 
+dist_noinst_DATA = data
+
 libgtest_a_SOURCES = $(GTEST_DIR)/src/gtest-all.cc
 
 test_LDADD = \
 	$(builddir)/libgtest.a \
-	$(top_builddir)/lib/liblcsmerge.a \
+	$(top_builddir)/lib/libtextile.a \
 	-lpthread
 
 test_SOURCES = \
