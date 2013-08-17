@@ -278,7 +278,7 @@ textile_merge(
 {
     struct cursor src, dest;
     struct lcs_string src_lcs, dest_lcs;
-    bool conflicts_found = false, conflict, take_theirs;
+    bool conflicts_found = false;
     bool equal, only_deletes;
     size_t match_length, old_end;
 
@@ -365,9 +365,6 @@ textile_merge(
             continue;
         }
 
-        conflict = true;
-        take_theirs = false;
-
         /*
          * Three cases here are considered below.
          *
@@ -385,11 +382,12 @@ textile_merge(
                     );
             if (equal) {
                 /* theirs is the same as base.  Take ours. */
-                conflict = false;
+                merged(data, ours + dest.j_begin, dest.j_end - dest.j_begin);
+                continue;
             }
         }
 
-        if (conflict && dest.i_end - dest.i_begin == dest.j_end - dest.j_begin) {
+        if (dest.i_end - dest.i_begin == dest.j_end - dest.j_begin) {
             equal = ! strncmp(
                     base + dest.i_begin,
                     ours + dest.j_begin,
@@ -397,12 +395,12 @@ textile_merge(
                     );
             if (equal) {
                 /* ours is the same as base.  Take theirs. */
-                take_theirs = true;
-                conflict = false;
+                merged(data, theirs + src.j_begin, src.j_end - src.j_begin);
+                continue;
             }
         }
 
-        if (conflict && src.j_end - src.j_begin == dest.j_end - dest.j_begin) {
+        if (src.j_end - src.j_begin == dest.j_end - dest.j_begin) {
             equal = ! strncmp(
                     theirs + src.j_begin,
                     ours + dest.j_begin,
@@ -410,40 +408,29 @@ textile_merge(
                     );
             if (equal) {
                 /* ours is the same as theirs.  Take ours. */
-                conflict = false;
-            }
-        }
-
-        /*
-         * We've identified what content should be used.  Defer to the caller's
-         * callback functions to handle it.
-         */
-        if (!conflict) {
-            if (take_theirs) {
-                merged(data, theirs + src.j_begin, src.j_end - src.j_begin);
-            } else {
                 merged(data, ours + dest.j_begin, dest.j_end - dest.j_begin);
+                continue;
             }
-        } else {
-            conflicts_found = true;
-
-            if (match_length) {
-                /*
-                 * When index == 0 the "matching character" is the start of the
-                 * sequence.  (Like ^ in a regex)  It shouldn't be printed.
-                 */
-                merged(data, ours + dest.j_begin, match_length);
-                dest.j_begin++;
-                dest.i_begin++;
-                src.j_begin++;
-            }
-
-            conflicted( data,
-                base + dest.i_begin, dest.i_end - dest.i_begin,
-                ours + dest.j_begin, dest.j_end - dest.j_begin,
-                theirs + src.j_begin, src.j_end - src.j_begin
-            );
         }
+
+        conflicts_found = true;
+
+        if (match_length) {
+            /*
+             * When index == 0 the "matching character" is the start of the
+             * sequence.  (Like ^ in a regex)  It shouldn't be printed.
+             */
+            merged(data, ours + dest.j_begin, match_length);
+            dest.j_begin++;
+            dest.i_begin++;
+            src.j_begin++;
+        }
+
+        conflicted( data,
+            base + dest.i_begin, dest.i_end - dest.i_begin,
+            ours + dest.j_begin, dest.j_end - dest.j_begin,
+            theirs + src.j_begin, src.j_end - src.j_begin
+        );
     }
 
     if (dest_lcs.lcs) free(dest_lcs.lcs);
