@@ -280,7 +280,7 @@ textile_merge(
     struct lcs_string src_lcs, dest_lcs;
     bool conflicts_found = false;
     bool equal, only_deletes;
-    size_t match_length, old_end;
+    size_t old_end;
 
     /* Compute LCS between base and theirs. */
     src_lcs.len = max(base_len, theirs_len);
@@ -313,12 +313,18 @@ textile_merge(
          * sequence (like ^ in a regular expression.)  It has zero length.
          */
 
-        match_length = src.index ? 1 : 0;
+        if (src.index) {
+            merged(data, ours + dest.j_begin, 1);
+            dest.j_begin++;
+            dest.i_begin++;
+            src.j_begin++;
+            src.i_begin++;
+        }
 
         only_deletes = true;
-        if (match_length != (src.j_end - src.j_begin))
+        if (0 != (src.j_end - src.j_begin))
             only_deletes = false;
-        if (match_length != (dest.j_end - dest.j_begin))
+        if (0 != (dest.j_end - dest.j_begin))
             only_deletes = false;
 
         /*
@@ -359,9 +365,6 @@ textile_merge(
          * deletes in either ours, theirs or both.
          */
         if (only_deletes) {
-            if (match_length) {
-                merged(data, ours + dest.j_begin, 1);
-            }
             continue;
         }
 
@@ -414,17 +417,6 @@ textile_merge(
         }
 
         conflicts_found = true;
-
-        if (match_length) {
-            /*
-             * When index == 0 the "matching character" is the start of the
-             * sequence.  (Like ^ in a regex)  It shouldn't be printed.
-             */
-            merged(data, ours + dest.j_begin, match_length);
-            dest.j_begin++;
-            dest.i_begin++;
-            src.j_begin++;
-        }
 
         conflicted( data,
             base + dest.i_begin, dest.i_end - dest.i_begin,
