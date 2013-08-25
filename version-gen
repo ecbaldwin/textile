@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -f version ]
+then
+    version=$(<version)
+else
+    version=$(git describe --dirty --tags --match '[0-9]*.[0-9]*.[0-9]*')
+fi
+
+echo -n $version
