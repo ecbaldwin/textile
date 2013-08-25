@@ -1,4 +1,5 @@
-*.o
 *.a
 .deps
+.libs
+*.o
 test

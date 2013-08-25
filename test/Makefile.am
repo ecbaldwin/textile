@@ -20,7 +20,7 @@ libgtest_a_SOURCES = $(GTEST_DIR)/src/gtest-all.cc
 
 test_LDADD = \
 	$(builddir)/libgtest.a \
-	$(top_builddir)/lib/libtextile.a \
+	$(top_builddir)/lib/libtextile.la \
 	-lpthread
 
 test_SOURCES = \
