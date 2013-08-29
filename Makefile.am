@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = lib src test
+SUBDIRS = lib src test bin
 
 EXTRA_DIST = version-gen
 dist-hook:
