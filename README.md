@@ -1,3 +1,17 @@
+Experimental Branch
+=======
+
+This is my experimental branch.  In the interest of openness, I wanted
+the community to be able to see what I'm working on before it is ready
+for the master branch.
+
+You should treat the experimental branch similarly to how you'd treat
+direct access to my personal repository.  I reserve the right to amend
+any of the commits in this branch or even to rebase the entire branch
+itself.  It is extremely unlikely that any of the commits in this
+branch will make it to the master branch with exactly the same commit
+id it has here.
+
 textile
 =======
 
