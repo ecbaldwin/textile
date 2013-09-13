@@ -214,6 +214,7 @@ lcs(const char *x, size_t m, const char *y, size_t n, struct lcs_char *result)
 
 struct cursor {
     size_t index;
+    size_t begin_index;
 
     size_t i_len;
     size_t i_begin;
@@ -228,6 +229,7 @@ struct cursor {
 
 void cursor_init(struct cursor *c, struct lcs_string *str, size_t i_len, size_t j_len) {
     c->index = 0;
+    c->begin_index = 0;
     c->i_begin = 0;
     c->j_begin = 0;
     c->i_len = i_len;
@@ -247,6 +249,7 @@ void cursor_advance(struct cursor *c, bool advance_begin) {
     c->index++;
 
     if (advance_begin) {
+        c->begin_index = c->index;
         c->i_begin = c->i_end;
         c->j_begin = c->j_end;
     }
