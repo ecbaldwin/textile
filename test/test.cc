@@ -138,6 +138,19 @@ namespace {
                 merge.stream.str());
     }
 
+    TEST_F(TextileTest, DISABLED_TestNoBaseBetter) {
+        bool rc = merge.call_textile_merge(
+            "",
+            "Content we added.",
+            "Content they added."
+            );
+
+        ASSERT_TRUE(rc);
+        ASSERT_EQ(
+                "Content <<<<<<<we|||||||=======they>>>>>>> added.",
+                merge.stream.str());
+    }
+
     TEST_F(TextileTest, TestChangeAtEol) {
         bool rc = merge.call_textile_merge(
             "Etiam at felis quis leo feugiat suscipit.",
@@ -169,6 +182,46 @@ namespace {
             "Name nec mass tincidunt, consectetur nunc in, commode dui.\n",
                 merge.stream.str());
     }
+
+    TEST_F(TextileTest, TestInsertBeforeDelete) {
+        bool rc = merge.call_textile_merge(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            "Lorem ipsum dolor sit amet, adipiscing elit.",
+            "Lorem ipsum dolor sit amet, insert consectetur adipiscing elit."
+            );
+
+        ASSERT_EQ(
+            "Lorem ipsum dolor sit amet, insert adipiscing elit.",
+                merge.stream.str());
+        ASSERT_FALSE(rc);
+    }
+
+    TEST_F(TextileTest, TestInsertAfterDelete) {
+        bool rc = merge.call_textile_merge(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            "Lorem ipsum dolor sit amet, adipiscing elit.",
+            "Lorem ipsum dolor sit amet, consectetur insert adipiscing elit."
+            );
+
+        ASSERT_EQ(
+            "Lorem ipsum dolor sit amet, insert adipiscing elit.",
+                merge.stream.str());
+        ASSERT_FALSE(rc);
+    }
+
+    TEST_F(TextileTest, TestInsertAndChange) {
+        bool rc = merge.call_textile_merge(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            "Lorem ipsum dolor sit amet, change adipiscing elit.",
+            "Lorem ipsum dolor sit amet, consecteturd adipiscing elit."
+            );
+
+        ASSERT_EQ(
+            "Lorem ipsum dolor sit amet, changed adipiscing elit.",
+                merge.stream.str());
+        ASSERT_FALSE(rc);
+    }
+
 
     TEST_F(TextileTest, TestAllMergeTypes) {
         ifstream base("data/AllMergeTypes/base");

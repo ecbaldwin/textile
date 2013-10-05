@@ -214,6 +214,7 @@ lcs(const char *x, size_t m, const char *y, size_t n, struct lcs_char *result)
 
 struct cursor {
     size_t index;
+    size_t begin_index;
 
     size_t i_len;
     size_t i_begin;
@@ -228,6 +229,7 @@ struct cursor {
 
 void cursor_init(struct cursor *c, struct lcs_string *str, size_t i_len, size_t j_len) {
     c->index = 0;
+    c->begin_index = 0;
     c->i_begin = 0;
     c->j_begin = 0;
     c->i_len = i_len;
@@ -247,6 +249,7 @@ void cursor_advance(struct cursor *c, bool advance_begin) {
     c->index++;
 
     if (advance_begin) {
+        c->begin_index = c->index;
         c->i_begin = c->i_end;
         c->j_begin = c->j_end;
     }
@@ -280,7 +283,7 @@ textile_merge(
     struct lcs_string src_lcs, dest_lcs;
     bool conflicts_found = false;
     bool equal, only_deletes;
-    size_t old_end;
+    size_t matched, matched_before, matched_after, old_end;
 
     /* Compute LCS between base and theirs. */
     src_lcs.len = max(base_len, theirs_len);
@@ -369,13 +372,11 @@ textile_merge(
         }
 
         /*
-         * Three cases here are considered below.
+         * Three simple cases are considered first.
          *
          * 1. Only changed in ours.
          * 2. Only changed in theirs.
          * 3. Changed identically in ours and theirs.
-         *
-         * Everything else is a conflict.
          */
         if (src.i_end - src.i_begin == src.j_end - src.j_begin) {
             equal = ! strncmp(
@@ -414,6 +415,33 @@ textile_merge(
                 merged(data, ours + dest.j_begin, dest.j_end - dest.j_begin);
                 continue;
             }
+        }
+
+        /**
+         * Some more advanced conflict resolution.
+         */
+        matched = src.index - src.begin_index;
+        if (matched && matched == src.i_end - src.i_begin) {
+            matched_before = src_lcs.lcs[src.begin_index].j - src.j_begin;
+
+            merged(data, theirs + src.j_begin, matched_before);
+            merged(data, ours + dest.j_begin, dest.j_end - dest.j_begin);
+            merged(data, theirs + src.j_begin + matched_before + matched,
+                         src.j_end - src.j_begin - matched - matched_before);
+
+            continue;
+        }
+
+        matched = dest.index - dest.begin_index;
+        if (matched && matched == dest.i_end - dest.i_begin) {
+            matched_before = dest_lcs.lcs[dest.begin_index].j - dest.j_begin;
+
+            merged(data, ours + dest.j_begin, matched_before);
+            merged(data, theirs + src.j_begin, src.j_end - src.j_begin);
+            merged(data, ours + dest.j_begin + matched_before + matched,
+                         dest.j_end - dest.j_begin - matched - matched_before);
+
+            continue;
         }
 
         conflicts_found = true;
